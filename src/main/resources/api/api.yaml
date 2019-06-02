@@ -1,0 +1,344 @@
+openapi: "3.0.0"
+
+info:
+  version: "1.0.0"
+  title: Election API V1
+
+servers:
+  - url: https://my.gov/api/v1/election
+
+paths:
+  /elections/{year}:
+    parameters:
+      - name: year
+        in: path
+        schema:
+          type: string
+        required: true
+
+  /elections/{year}/enrolments:
+    post:
+      summary: Enrol in online voting
+      operationId: enrol
+      tags:
+        - Enrol
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Enrolment"
+      responses:
+        '201':
+          description: Enrolment was submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Enrolment"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+
+  /elections/{year}/ballots:
+    get:
+      summary: Get ballot 
+      operationId: getBallot
+      tags:
+        - Vote
+      parameters:
+        - name: postcode
+          in: query
+          description: Get ballot for a division
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ballot information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ballot"
+        default:
+          $ref: "#/components/responses/ErrorResponse"              
+    post:
+      summary: Submit ballot
+      operationId: vote
+      tags:
+        - Vote
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Vote"
+      responses:
+        '201':
+          description: Vote was submitted and eligible status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vote"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /elections/{year}/live:
+    get:
+      summary: Subscribe to live stream
+      operationId: subscribeResult
+      tags:
+        - Result
+      responses:
+        '200':
+          description: Result stream
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResultStream"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        errorType:
+          type: string
+          example: BadRequest
+        errorDescription:
+          type: string
+          example: Resource not found
+
+    Citizen:
+      type: object
+      properties:
+        citizenId:
+          type: string
+        lastName:
+          type: string
+        givenNames:
+          type: string
+        address:
+          $ref: "#/components/schemas/Address"
+      required:
+        - citizenId
+        - lastName
+        - givenNames
+        - address
+
+    Address:
+      type: object
+      properties:
+        addressLine:
+          type: string
+        postcode:
+          type: string
+      required:
+        - postcode
+
+    Enrolment:
+      type: object
+      properties:
+        id:
+          type: string
+        citizen:
+          $ref: "#/components/schemas/Citizen"
+      required:
+        - citizen
+
+    Ballot:
+      type: object
+      properties:
+        enrolmentId:
+          type: string
+        division:
+          $ref: "#/components/schemas/Division"
+        houseOfRepBallot:
+          $ref: "#/components/schemas/HouseOfRepBallot"
+        senateBallot:
+          $ref: "#/components/schemas/SenateBallot"
+        votedDate:
+          type: string
+        ballotVersion:
+          type: string
+          default: v1.0
+      required:
+        - division
+        - houseOfRepBallot
+        - senateBallot
+        - enrolmentId
+    
+    SenateBallot:
+      type: object
+      properties:
+        title:
+          type: string
+          default: Senate Ballot
+        individualCandidates:
+          $ref: "#/components/schemas/IndividualCandidates"
+        partyCandidates:
+          $ref: "#/components/schemas/PartyCandidates"        
+        voteType:
+          type: string
+          enum: [PARTY, INDIVIDUAL]
+        votedIndividualCandidates:
+          $ref: "#/components/schemas/VotedIndividualCandidates"
+        votedPartyCandidates:
+          $ref: "#/components/schemas/VotedPartyCandidates"
+      required:
+        - voteType
+            
+    IndividualCandidates:
+      type: object
+      properties:
+        title:
+          type: string
+          default: Vote for individuals
+        candidates:
+          type: array
+          items:
+            $ref: "#/components/schemas/Candidate"
+
+    VotedIndividualCandidates:
+      type: object
+      properties:
+        candidates:
+          type: array
+          items:
+            $ref: "#/components/schemas/VotedCandidate"
+      required:
+        - candidates
+
+    PartyCandidates:
+      type: object
+      properties:
+        title:
+          type: string
+          default: Vote for parties
+        candidates:
+          type: array
+          items:
+            $ref: "#/components/schemas/Party"
+
+    VotedPartyCandidates:
+      type: object
+      properties:
+        candidates:
+          type: array
+          items:
+            $ref: "#/components/schemas/VotedParty"
+      required:
+        - candidates
+
+    HouseOfRepBallot:  
+      type: object
+      properties:
+        title: 
+          type: string
+          default: House of Representatives Ballot
+        candidates:
+          type: array
+          items:
+            $ref: "#/components/schemas/Candidate"
+        votedCandidates:
+          type: array
+          items:
+            $ref: "#/components/schemas/VotedCandidate"
+      required:
+        - votedCandidates
+
+    VotedCandidate:
+      type: object
+      properties:
+        voteNo:
+          type: integer 
+        candidate:
+          $ref: "#/components/schemas/Candidate"
+      required:
+        - voteNo
+        - candidate
+
+    Candidate:
+      type: object
+      properties:
+        lastName:
+          type: string
+        givenNames:
+          type: string
+        party:
+          $ref: "#/components/schemas/Party"
+      required:
+        - lastName
+        - givenNames
+        - party
+
+    VotedParty:
+      type: object
+      properties:
+        voteNo:
+          type: integer
+        party:
+          $ref: "#/components/schemas/Party"
+      required:
+        - voteNo
+        - party
+
+    Party:
+      type: object
+      properties:
+        name:
+          type: string
+        logoUrl:
+          type: string
+      required:
+        - name
+
+    Division:
+      type: object
+      properties:
+        id: 
+          type: string
+        suburbs:
+          type: array
+          items:
+            $ref: "#/components/schemas/Suburb"
+
+    Suburb:
+      type: object
+      properties:
+        postcode:
+          type: string
+        name:
+          type: string
+
+    Vote:
+      type: object
+      properties:  
+        ballot:
+          $ref: "#/components/schemas/Ballot"
+        witnessedBy:
+          type: string
+        eligibility:
+          $ref: "#/components/schemas/VoteEligibility"
+      required:
+        - ballot
+        - witnessedBy
+
+    VoteEligibility:
+      type: object
+      properties:
+        status:
+          type: boolean
+        reason:
+          type: string
+
+    ResultStream:
+      type: object
+      properties:
+        id:
+          type: string
+
+  responses:
+    ErrorResponse:
+      description: An error has occurred
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"

@@ -1,0 +1,42 @@
+import my.gov.election.models.Vote
+import my.gov.election.models.VoteEligibility
+import my.gov.election.models.Ballot
+import my.gov.election.models.Division
+import my.gov.election.models.HouseOfRepBallot
+import my.gov.election.models.SenateBallot
+import my.gov.election.models.VotedPartyCandidates
+import my.gov.election.models.VotedIndividualCandidates
+
+global my.gov.election.models.VoteEligibility eligibility
+
+dialect "java"
+
+rule "Valid Vote 1 - By Party"
+    when
+        ob: Ballot()
+        Vote(b: ballot != null)
+        Vote(b.enrolmentId != null)
+        Vote(b.division.id == ob.division.id)
+        Vote(b.houseOfRepBallot.votedCandidates.size() == 3)
+        Vote(b.senateBallot.voteType == SenateBallot.VoteTypeEnum.PARTY)
+        Vote(b.senateBallot.votedPartyCandidates.candidates.size() == 1)
+    then
+        eligibility.setStatus(true);
+        eligibility.setReason("Valid Vote 1");
+end
+
+rule "Valid Vote 2 - By Individuals"
+    when
+        ob: Ballot()
+        Vote(b: ballot != null)
+        Vote(b.enrolmentId != null)
+        Vote(b.division.id == ob.division.id)
+        Vote(b.houseOfRepBallot.votedCandidates.size() == 3)
+        Vote(b.senateBallot.voteType == SenateBallot.VoteTypeEnum.INDIVIDUAL)
+        Vote(b.senateBallot.votedIndividualCandidates.candidates.size() == 1)
+    then
+        eligibility.setStatus(true);
+        eligibility.setReason("Valid Vote 2");
+end
+
+

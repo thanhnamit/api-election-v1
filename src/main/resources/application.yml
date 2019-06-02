@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: api-election-v1
+
+server:
+  port: 8085
+
+
+
