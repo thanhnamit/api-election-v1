@@ -1,3 +1,5 @@
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fthanhnamit%2Fapi-election-v1.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fthanhnamit%2Fapi-election-v1?ref=badge_shield)
+
 Sample command to call Rule Engine API
 
 ```json
@@ -81,3 +83,6 @@ curl -X POST \
 	"witnessedBy": "test"
 }'
 ```
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fthanhnamit%2Fapi-election-v1.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fthanhnamit%2Fapi-election-v1?ref=badge_large)
